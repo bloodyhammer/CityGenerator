@@ -135,10 +135,15 @@ bpy.utils.register_module(__name__)
 def generate_town(taille, margeBetweenBat, valueHouse, valueLittle, valueBig):
 	margin = 5
 	
+	bpy.ops.mesh.primitive_plane_add(location = (0, 0, 0))
+	bpy.ops.transform.resize(value=(taille*4, taille*4, 0)) 
+	
+
 	#CREATE BUILDINGS
 	#SET FLOOR
 	bpy.ops.mesh.primitive_plane_add(location = (0, 0, 0))
 	bpy.ops.transform.resize(value=(taille, taille, 0)) 
+	bpy.ops.transform.translate(value=(2.8, 1.6, 0), constraint_axis=(True, True, False), constraint_orientation='GLOBAL', mirror=False, proportional='DISABLED', proportional_edit_falloff='SMOOTH', proportional_size=1, release_confirm=True)
 
 	#BUILDINGS POSITIONS
 	x=- (taille - margin)
@@ -175,46 +180,40 @@ def generate_town(taille, margeBetweenBat, valueHouse, valueLittle, valueBig):
 		#Centralisation des populations
 		randBatiment = randint(0, 3)
 		if positionX >= -rangeBigBuilding and positionX <= rangeBigBuilding and positionY >= -rangeBigBuilding and positionY <= rangeBigBuilding:       
-			#if randBatiment == 0:
 			createTower(positionX, positionY) 
 		elif (positionX >= -rangeLittleBuilding and positionX <= -rangeBigBuilding and positionY >= -rangeLittleBuilding and positionY <= rangeLittleBuilding) or (positionX >= rangeBigBuilding and positionX <= rangeLittleBuilding and positionY >= -rangeLittleBuilding and positionY <= rangeLittleBuilding) or (positionX >= -rangeLittleBuilding and positionX <= rangeLittleBuilding and positionY >= -rangeLittleBuilding and positionY <= -rangeBigBuilding) or (positionX >= -rangeLittleBuilding and positionX <= rangeLittleBuilding and positionY >= rangeBigBuilding and positionY <= rangeLittleBuilding) :
-			#elif randBatiment == 1:
 				createBigBuilding(positionX, positionY) 
 		elif (positionX >= -rangeHouse and positionX <= -rangeLittleBuilding and positionY >= -rangeHouse and positionY <= rangeHouse) or (positionX >= rangeLittleBuilding and positionX <= rangeHouse and positionY >= -rangeHouse and positionY <= rangeHouse) or (positionX >= -rangeHouse and positionX <= rangeHouse and positionY >= -rangeHouse and positionY <= -rangeLittleBuilding) or (positionX >= -rangeHouse and positionX <= rangeHouse and positionY >= rangeLittleBuilding and positionY <= rangeHouse):
-			#elif randBatiment == 2:
 				createLittleBuilding(positionX, positionY)
 		elif positionX <= -rangeHouse or positionX >= rangeHouse or positionY <= -rangeHouse or positionY >= rangeHouse:
-		   # elif randBatiment == 3:
 			createHouse(positionX, positionY)
-		"""else:
-			if randBatiment == 0:
-				createLittleBuilding(positionX, positionY)
-			else:
-				createBigBuilding(positionX, positionY) """
 		i = i+1
 
+	thick = 1.6
+	random = uniform(0.1, 1)
+	createPlaneRandom(taille*2 + margin, 0, taille, 0.125, thick)
+	createPlaneRandom(0, taille*2 + margin, taille, 0.125, thick)
+	createPlaneRandom(-taille*2, 0, taille, 0.125, thick)
+	createPlaneRandom(0, -taille*2, taille, 0.125, thick)
+	
 
+def createPlaneRandom(x, y, taille, random, thick):
+	bpy.ops.mesh.primitive_plane_add(location = (x, y, 0))
+	bpy.ops.transform.resize(value=(taille, taille, 1)) 
 
-	"""
-	bpy.ops.object.mode_set(mode = 'OBJECT') 
-	bpy.ops.mesh.primitive_circle_add(enter_editmode = True, location = (0, 0, 13))
-	bpy.ops.object.mode_set(mode = 'EDIT') 
-	randomSize = randint(3, 5)
-	bpy.ops.mesh.extrude_region_move(TRANSFORM_OT_translate={"value" : (0,0,randomSize)})            
-	randomCoorX = uniform(-4, 8)
-	nodePosition[i][0] = (0 + randomCoorX)
-	randomCoorY = uniform(-4, 8)
-	nodePosition[i][1] = (0 + randomCoorY)
-	randomCoorZ = uniform(-2, 4)
-	nodePosition[i][2] = (13 + randomCoorZ + randomSize)
-	print(randomCoorX)
-	print(randomCoorY)
-	print(randomCoorZ)
-	bpy.ops.transform.translate(value = (randomCoorX, randomCoorY, randomCoorZ))
-	"""
+	bpy.ops.object.mode_set(mode='EDIT')
+	bpy.ops.mesh.subdivide()
+	bpy.ops.mesh.subdivide()
+	bpy.ops.mesh.subdivide()
+	bpy.ops.object.vertex_random(offset=random)
 
+	bpy.ops.mesh.inset(thickness=0.035, use_select_inset=False, use_individual=True)
+
+	bpy.ops.mesh.extrude_region_move(MESH_OT_extrude_region={"mirror":False}, TRANSFORM_OT_translate={"value":(0, 0, uniform(10,15)), "constraint_axis":(False, False, True), "constraint_orientation":'NORMAL', "mirror":False, "proportional":'DISABLED', "proportional_edit_falloff":'SMOOTH', "proportional_size":1, "snap":False, "snap_target":'CLOSEST', "snap_point":(0, 0, 0), "snap_align":False, "snap_normal":(0, 0, 0), "texture_space":False, "remove_on_cancel":False, "release_confirm":False})
+	bpy.ops.object.mode_set(mode='OBJECT')
+	
 def createHouse(posX, posY):  
-	cote = uniform(4, 6)
+	cote = uniform(4, 5)
 	hauteur = cote * 2#(cote*2)/3
 	mesh, object = create_building('House', posX, posY,  hauteur, cote)
 
@@ -231,7 +230,7 @@ def createHouse(posX, posY):
 		
 
 def createLittleBuilding(posX, posY):
-	cote = uniform(4,6)
+	cote = uniform(4,5)
 	hauteur = cote*4
 	create_building('Little Building', posX, posY,  hauteur, cote)
 	
@@ -247,7 +246,7 @@ def createLittleBuilding(posX, posY):
 	bpy.ops.object.mode_set(mode='OBJECT')
     
 def createBigBuilding(posX, posY):
-	cote = uniform(4,6)
+	cote = uniform(4,5)
 	hauteur = cote*6
 	create_building('Big Building', posX, posY,  hauteur, cote)
     
@@ -262,7 +261,7 @@ def createBigBuilding(posX, posY):
 	
 	bpy.ops.object.mode_set(mode='OBJECT')
 def createTower(posX, posY):
-	cote = uniform(4,6)
+	cote = uniform(4,5)
 	hauteur = cote*10
 	create_building('Tower', posX, posY,  hauteur, cote)
 	
@@ -350,3 +349,20 @@ def setMaterial(ob, mat):
 
 
 
+
+"""
+bpy.ops.object.mode_set(mode = 'OBJECT') 
+bpy.ops.mesh.primitive_circle_add(enter_editmode = True, location = (0, 0, 13))
+bpy.ops.object.mode_set(mode = 'EDIT') 
+randomSize = randint(3, 5)
+bpy.ops.mesh.extrude_region_move(TRANSFORM_OT_translate={"value" : (0,0,randomSize)})            
+randomCoorX = uniform(-4, 8)
+nodePosition[i][0] = (0 + randomCoorX)
+randomCoorY = uniform(-4, 8)
+nodePosition[i][1] = (0 + randomCoorY)
+randomCoorZ = uniform(-2, 4)
+nodePosition[i][2] = (13 + randomCoorZ + randomSize)
+print(randomCoorX)
+print(randomCoorY)
+print(randomCoorZ)
+bpy.ops.transform.translate(value = (randomCoorX, randomCoorY, randomCoorZ))"""
