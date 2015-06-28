@@ -110,7 +110,7 @@ class OBJECT_OT_DeleteButton(bpy.types.Operator):
 	def execute(self, context):
 		bpy.ops.object.mode_set(mode='OBJECT')
 		for ob in bpy.context.scene.objects:
-			ob.select = (ob.type == 'MESH' or ob.type == 'LAMP') and (ob.name.startswith("Cylinder") or ob.name.startswith("House") or ob.name.startswith("Little") or ob.name.startswith("Tower") or ob.name.startswith("Big")  or ob.name.startswith("Cube") or ob.name.startswith("Plane"))
+			ob.select = (ob.type == 'MESH' or ob.type == 'LAMP') and (ob.name.startswith("Cylinder")  or ob.name.startswith("Env") or ob.name.startswith("House") or ob.name.startswith("Little") or ob.name.startswith("Tower") or ob.name.startswith("Big")  or ob.name.startswith("Cube") or ob.name.startswith("Plane"))
 			bpy.ops.object.delete()
 		return{'FINISHED'}    
 
@@ -135,7 +135,7 @@ bpy.utils.register_module(__name__)
 def generate_town(taille, margeBetweenBat, valueHouse, valueLittle, valueBig):
 	margin = 5
 	
-	bpy.ops.mesh.primitive_plane_add(location = (0, 0, 0))
+	bpy.ops.mesh.primitive_plane_add(location = (0, 0, 0.1))
 	bpy.ops.transform.resize(value=(taille*4, taille*4, 0)) 
 	
 
@@ -144,6 +144,14 @@ def generate_town(taille, margeBetweenBat, valueHouse, valueLittle, valueBig):
 	bpy.ops.mesh.primitive_plane_add(location = (0, 0, 0))
 	bpy.ops.transform.resize(value=(taille, taille, 0)) 
 	bpy.ops.transform.translate(value=(2.8, 1.6, 0), constraint_axis=(True, True, False), constraint_orientation='GLOBAL', mirror=False, proportional='DISABLED', proportional_edit_falloff='SMOOTH', proportional_size=1, release_confirm=True)
+	
+	object = bpy.context.active_object 
+	obj_data = object.data
+	bpy.ops.object.mode_set(mode='EDIT')
+	mesh = bmesh.from_edit_mesh(obj_data)
+	nameMat = "road.jpg"
+	set_uv_ground(nameMat, object, mesh,2,6)
+	bpy.ops.object.mode_set(mode='OBJECT')
 
 	#BUILDINGS POSITIONS
 	x=- (taille - margin)
@@ -155,9 +163,7 @@ def generate_town(taille, margeBetweenBat, valueHouse, valueLittle, valueBig):
 	
 	i=0
 	for posNumX in range(0, int(nbBat/nbUnitPerCote)):
-		for posNumY in range(0,int(nbBat/nbUnitPerCote)): 
-			print(posNumX)
-			print(posNumY)                         
+		for posNumY in range(0,int(nbBat/nbUnitPerCote)):                  
 			buildingPosTab[i][0] = x
 			buildingPosTab[i][1] = y
 			i = i+1
@@ -168,10 +174,12 @@ def generate_town(taille, margeBetweenBat, valueHouse, valueLittle, valueBig):
 
 	i = 0
 	
+	
+	
 	rangeHouse = taille - taille * valueHouse
 	rangeLittleBuilding = taille - taille * (valueHouse + valueLittle)
 	rangeBigBuilding = taille - taille * (valueHouse + valueLittle + valueBig)
-
+	
 	for buildNum in range(0,len(buildingPosTab)):
 		#randPositionX = uniform(-50,50) 
 		#randPositionY = uniform(-50,50) 
@@ -179,23 +187,44 @@ def generate_town(taille, margeBetweenBat, valueHouse, valueLittle, valueBig):
 		positionY = buildingPosTab[i][1]
 		#Centralisation des populations
 		randBatiment = randint(0, 3)
-		if positionX >= -rangeBigBuilding and positionX <= rangeBigBuilding and positionY >= -rangeBigBuilding and positionY <= rangeBigBuilding:       
-			createTower(positionX, positionY) 
+		randEnv = randint(0, 1)
+		
+		if positionX >= -rangeBigBuilding and positionX <= rangeBigBuilding and positionY >= -rangeBigBuilding and positionY <= rangeBigBuilding: 
+			randBatiment = randint(0, 2)
+			if(randBatiment == 0):
+				createTower(positionX, positionY) 
+			else:
+				placeRessource(positionX, positionY, 0.1, "ModelHigh"+str(randBatiment), "Tower")
+			
 		elif (positionX >= -rangeLittleBuilding and positionX <= -rangeBigBuilding and positionY >= -rangeLittleBuilding and positionY <= rangeLittleBuilding) or (positionX >= rangeBigBuilding and positionX <= rangeLittleBuilding and positionY >= -rangeLittleBuilding and positionY <= rangeLittleBuilding) or (positionX >= -rangeLittleBuilding and positionX <= rangeLittleBuilding and positionY >= -rangeLittleBuilding and positionY <= -rangeBigBuilding) or (positionX >= -rangeLittleBuilding and positionX <= rangeLittleBuilding and positionY >= rangeBigBuilding and positionY <= rangeLittleBuilding) :
+			randBatiment = randint(0, 1)
+			if(randBatiment == 0):
 				createBigBuilding(positionX, positionY) 
+			else:
+				placeRessource(positionX, positionY, 0.1, "ModelBig"+str(randBatiment), "BigBuilding")
+				
 		elif (positionX >= -rangeHouse and positionX <= -rangeLittleBuilding and positionY >= -rangeHouse and positionY <= rangeHouse) or (positionX >= rangeLittleBuilding and positionX <= rangeHouse and positionY >= -rangeHouse and positionY <= rangeHouse) or (positionX >= -rangeHouse and positionX <= rangeHouse and positionY >= -rangeHouse and positionY <= -rangeLittleBuilding) or (positionX >= -rangeHouse and positionX <= rangeHouse and positionY >= rangeLittleBuilding and positionY <= rangeHouse):
-				createLittleBuilding(positionX, positionY)
+			randBatiment = randint(0, 3)
+			placeRessource(positionX, positionY, 0.1 , "ModelHouse"+str(randBatiment), "LittleBuilding")
+			if(randEnv == 0):
+				placeRessource(positionX + 0.5, positionY + 0.5, 0, "Lamp", "Env")
+			else:
+				placeRessource(positionX + 0.5, positionY + 0.5, 0, "Tree", "Env")
 		elif positionX <= -rangeHouse or positionX >= rangeHouse or positionY <= -rangeHouse or positionY >= rangeHouse:
-			createHouse(positionX, positionY)
+			randBatiment = randint(0, 3)
+			placeRessource(positionX, positionY, 0.1, "ModelHouse"+str(randBatiment), "House")
+			if(randEnv == 0):
+				placeRessource(positionX + 0.5, positionY + 0.55, 0, "Lamp", "Env")
+			else:
+				placeRessource(positionX + 0.5, positionY + 0.5, 0, "Tree", "Env")
 		i = i+1
 
-	thick = 1.6
+	"""thick = 1.6
 	random = uniform(0.1, 1)
 	createPlaneRandom(taille*2 + margin, 0, taille, 0.125, thick)
 	createPlaneRandom(0, taille*2 + margin, taille, 0.125, thick)
 	createPlaneRandom(-taille*2, 0, taille, 0.125, thick)
-	createPlaneRandom(0, -taille*2, taille, 0.125, thick)
-	
+	createPlaneRandom(0, -taille*2, taille, 0.125, thick)"""
 
 def createPlaneRandom(x, y, taille, random, thick):
 	bpy.ops.mesh.primitive_plane_add(location = (x, y, 0))
@@ -228,7 +257,6 @@ def createHouse(posX, posY):
 	
 	bpy.ops.object.mode_set(mode='OBJECT')
 		
-
 def createLittleBuilding(posX, posY):
 	cote = uniform(4,5)
 	hauteur = cote*4
@@ -316,7 +344,17 @@ def create_building(name, px, py, hauteur, largeur):
 	
 	return mesh, object
 
-
+def set_uv_ground(nameMat, object, mesh, scalex, scaley):
+	mat = createMaterial('img/' + nameMat)
+	mat.specular_intensity = 0
+	mat.texture_slots[0].texture_coords = 'UV'
+	mat.texture_slots[0].scale[0] = scalex
+	mat.texture_slots[0].scale[1] = scaley
+	setMaterial(object, mat)
+	
+	mesh.faces[0].select = True	
+	bpy.ops.uv.unwrap(method='ANGLE_BASED', margin=0.001)
+	
 def set_uv(nameMat, object, mesh, scalex, scaley):
 	mat = createMaterial('img/' + nameMat)
 	mat.specular_intensity = 0
@@ -348,7 +386,18 @@ def setMaterial(ob, mat):
     me.materials.append(mat)
 
 
-
+def placeRessource(x, y, z, model, name):
+	bpy.ops.object.select_all(action='TOGGLE')  
+	bpy.ops.object.select_all(action='DESELECT')  
+	bpy.context.scene.objects.active = bpy.data.objects[model]
+	building = bpy.context.active_object
+	building.select = True
+	bpy.ops.object.duplicate_move_linked(OBJECT_OT_duplicate={"linked":True, "mode":'TRANSLATION'}, TRANSFORM_OT_translate={"value":(0, 0, 0), "constraint_axis":(False, False, False), "constraint_orientation":'GLOBAL', "mirror":False, "proportional":'DISABLED', "proportional_edit_falloff":'SMOOTH', "proportional_size":1, "snap":False, "snap_target":'CLOSEST', "snap_point":(0, 0, 0), "snap_align":False, "snap_normal":(0, 0, 0), "texture_space":False, "remove_on_cancel":False, "release_confirm":False})
+	bpy.context.object.location[0] = x
+	bpy.context.object.location[1] = y
+	bpy.context.object.location[2] = z
+	bpy.context.object.name = name
+	bpy.ops.object.select_all(action='DESELECT')  
 
 """
 bpy.ops.object.mode_set(mode = 'OBJECT') 
