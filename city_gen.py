@@ -214,9 +214,11 @@ def generate_town(taille, margeBetweenBat, valueHouse, valueLittle, valueBig):
 				placeRessource(positionX, positionY, 0.1, "ModelHigh"+str(randBatiment), "Tower")
 			
 		elif (positionX >= -rangeLittleBuilding and positionX <= -rangeBigBuilding and positionY >= -rangeLittleBuilding and positionY <= rangeLittleBuilding) or (positionX >= rangeBigBuilding and positionX <= rangeLittleBuilding and positionY >= -rangeLittleBuilding and positionY <= rangeLittleBuilding) or (positionX >= -rangeLittleBuilding and positionX <= rangeLittleBuilding and positionY >= -rangeLittleBuilding and positionY <= -rangeBigBuilding) or (positionX >= -rangeLittleBuilding and positionX <= rangeLittleBuilding and positionY >= rangeBigBuilding and positionY <= rangeLittleBuilding) :
-			createBigBuilding(positionX, positionY) 
-			"""else:
-				placeRessource(positionX, positionY, 0.1, "ModelBig"+str(randBatiment), "BigBuilding")"""
+			randBatiment = randint(0, 1)
+			if(randBatiment == 0):
+				createBigBuilding(positionX, positionY) 
+			else:
+				placeRessource(positionX, positionY, 0.1, "ModelBig"+str(randBatiment), "BigBuilding")
 				
 		elif (positionX >= -rangeHouse and positionX <= -rangeLittleBuilding and positionY >= -rangeHouse and positionY <= rangeHouse) or (positionX >= rangeLittleBuilding and positionX <= rangeHouse and positionY >= -rangeHouse and positionY <= rangeHouse) or (positionX >= -rangeHouse and positionX <= rangeHouse and positionY >= -rangeHouse and positionY <= -rangeLittleBuilding) or (positionX >= -rangeHouse and positionX <= rangeHouse and positionY >= rangeLittleBuilding and positionY <= rangeHouse):
 			randBatiment = randint(0, 3)
