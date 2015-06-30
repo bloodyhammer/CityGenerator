@@ -169,15 +169,17 @@ def generate_town(taille, margeBetweenBat, valueHouse, valueLittle, valueBig):
 	nbUnitPerCote = ceil((realLargeur / (margeBetweenBat + cote)) + 1);
 	
 	new_taille = ((margeBetweenBat + cote) * nbUnitPerCote)/2
-	
-	if(new_taille > realLargeur):
+	if(new_taille > realLargeur/2):
 		bpy.context.object.scale[0] = new_taille
 		bpy.context.object.scale[1] = new_taille
-		
+		print(new_taille)
+		bpy.ops.transform.translate(value=(((new_taille - taille)/2 + cote)/2, ((new_taille - taille)/2 + cote)/2, 0), constraint_axis=(True, True, False))
+	
+	print((new_taille - taille)/2 + cote)
 	nbBat = nbUnitPerCote * nbUnitPerCote;
 	buildingPosTab = np.zeros((nbBat, 2), dtype='i')
 	
-	bpy.ops.transform.translate(value=((new_taille - taille)/2, (new_taille - taille)/2, 0), constraint_axis=(True, True, False))
+	
 	
 	i=0
 	for posNumX in range(0, int(nbBat/nbUnitPerCote)):
@@ -214,11 +216,11 @@ def generate_town(taille, margeBetweenBat, valueHouse, valueLittle, valueBig):
 				placeRessource(positionX, positionY, 0.1, "ModelHigh"+str(randBatiment), "Tower")
 			
 		elif (positionX >= -rangeLittleBuilding and positionX <= -rangeBigBuilding and positionY >= -rangeLittleBuilding and positionY <= rangeLittleBuilding) or (positionX >= rangeBigBuilding and positionX <= rangeLittleBuilding and positionY >= -rangeLittleBuilding and positionY <= rangeLittleBuilding) or (positionX >= -rangeLittleBuilding and positionX <= rangeLittleBuilding and positionY >= -rangeLittleBuilding and positionY <= -rangeBigBuilding) or (positionX >= -rangeLittleBuilding and positionX <= rangeLittleBuilding and positionY >= rangeBigBuilding and positionY <= rangeLittleBuilding) :
-			randBatiment = randint(0, 1)
-			if(randBatiment == 0):
-				createBigBuilding(positionX, positionY) 
-			else:
-				placeRessource(positionX, positionY, 0.1, "ModelBig"+str(randBatiment), "BigBuilding")
+			"""randBatiment = randint(0, 1)
+			if(randBatiment == 0):"""
+			createBigBuilding(positionX, positionY) 
+			"""else:
+				placeRessource(positionX, positionY, 0.1, "ModelBig"+str(randBatiment), "BigBuilding")"""
 				
 		elif (positionX >= -rangeHouse and positionX <= -rangeLittleBuilding and positionY >= -rangeHouse and positionY <= rangeHouse) or (positionX >= rangeLittleBuilding and positionX <= rangeHouse and positionY >= -rangeHouse and positionY <= rangeHouse) or (positionX >= -rangeHouse and positionX <= rangeHouse and positionY >= -rangeHouse and positionY <= -rangeLittleBuilding) or (positionX >= -rangeHouse and positionX <= rangeHouse and positionY >= rangeLittleBuilding and positionY <= rangeHouse):
 			randBatiment = randint(0, 3)

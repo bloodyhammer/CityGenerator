@@ -4,6 +4,7 @@ def set_uv(nameMat, object, mesh, scalex, scaley):
 	mat = createMaterial('img/' + nameMat)
 	mat.specular_intensity = 0
 	mat.texture_slots[0].texture_coords = 'UV'
+	mat.texture_slots[0].mapping = 'FLAT'
 	mat.texture_slots[0].scale[0] = scalex
 	mat.texture_slots[0].scale[1] = scaley
 	setMaterial(object, mat)
