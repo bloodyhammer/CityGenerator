@@ -131,13 +131,16 @@ class OBJECT_OT_ExportButton(bpy.types.Operator):
 	bl_idname = "town.export"
 	bl_label = "Export to FBX"
 	def execute(self, context):
-	
+		ob.select = (ob.type == 'MESH' or ob.type == 'LAMP') and (ob.name.startswith("Cylinder") or ob.name.startswith("Top") or ob.name.startswith("Env") or ob.name.startswith("House") or ob.name.startswith("Little") or ob.name.startswith("Tower") or ob.name.startswith("Big")  or ob.name.startswith("Cube") or ob.name.startswith("Plane"))
 		convertToFbx()
 		return{'FINISHED'}    
 
 #registration
 bpy.utils.register_module(__name__)
-
+def convertToFbx():
+	 fn = os.path.join(os.path.dirname(bpy.data.filepath), "town")
+	 bpy.ops.export_scene.fbx(filepath=fn + ".fbx", use_selection=True,axis_forward='-Z', axis_up='Y')
+	 
 def generate_town(taille, margeBetweenBat, valueHouse, valueLittle, valueBig):
 	print("GENERATE TOWN")
 	margin = 5
