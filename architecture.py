@@ -133,7 +133,7 @@ def createTower(posX, posY):
 	mesh = bmesh.from_edit_mesh(obj_data)
 	#Texture building
 	nbText = randint(1,4)
-	nameMat = 'tower' + str(nbText) + '.jpg'
+	nameMat = 'big' + str(nbText) + '.jpg'
 	set_uv(nameMat, object, mesh,2,6)
 	bpy.ops.object.mode_set(mode='OBJECT')
 	object.location[0] = -2.5

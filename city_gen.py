@@ -18,9 +18,9 @@ def initSceneProperties(scn):
 	bpy.types.Scene.Margin = IntProperty(
 		name = "Margin", 
 		description = "Enter an integer",
-		default = 10,
-		min = 5,
-		max = 30)
+		default = 5,
+		min = 2,
+		max = 7)
 	bpy.types.Scene.Taille = IntProperty(
 		name = "Taille", 
 		description = "Enter an integer",
@@ -73,7 +73,7 @@ class ToolsPanel(bpy.types.Panel):
 		split = row.split(percentage=1)
 		col = split.column()
 		col.prop(scn, 'ValueHouse', text = "% house")
-		col.prop(scn, 'ValueLittle', text = "% little building")
+		#col.prop(scn, 'ValueLittle', text = "% little building")
 		col.prop(scn, 'ValueBig', text = "% big building")
 		
 		layout.label("Tools")
@@ -104,10 +104,7 @@ class OBJECT_OT_GenButton(bpy.types.Operator):
 		valueBig = bpy.context.scene.ValueBig
 		
 		lowPoly = bpy.context.scene.LowPoly
-		if lowPoly == True:
-			generate_town_alternative(taille, margin, valueHouse, valueLittle, valueBig)
-		else:
-			generate_town(taille, margin, valueHouse, valueLittle, valueBig)
+		generate_town(taille, margin, valueHouse, valueBig)
 		return{'FINISHED'}    
 
 class OBJECT_OT_DeleteButton(bpy.types.Operator):
@@ -131,7 +128,8 @@ class OBJECT_OT_ExportButton(bpy.types.Operator):
 	bl_idname = "town.export"
 	bl_label = "Export to FBX"
 	def execute(self, context):
-		ob.select = (ob.type == 'MESH' or ob.type == 'LAMP') and (ob.name.startswith("Cylinder") or ob.name.startswith("Top") or ob.name.startswith("Env") or ob.name.startswith("House") or ob.name.startswith("Little") or ob.name.startswith("Tower") or ob.name.startswith("Big")  or ob.name.startswith("Cube") or ob.name.startswith("Plane"))
+		for ob in bpy.context.scene.objects:
+			ob.select = (ob.type == 'MESH' or ob.type == 'LAMP') and (ob.name.startswith("Cylinder") or ob.name.startswith("Top") or ob.name.startswith("Env") or ob.name.startswith("House") or ob.name.startswith("Little") or ob.name.startswith("Tower") or ob.name.startswith("Big")  or ob.name.startswith("Cube") or ob.name.startswith("Plane"))
 		convertToFbx()
 		return{'FINISHED'}    
 
@@ -141,7 +139,7 @@ def convertToFbx():
 	 fn = os.path.join(os.path.dirname(bpy.data.filepath), "town")
 	 bpy.ops.export_scene.fbx(filepath=fn + ".fbx", use_selection=True,axis_forward='-Z', axis_up='Y')
 	 
-def generate_town(taille, margeBetweenBat, valueHouse, valueLittle, valueBig):
+def generate_town(taille, margeBetweenBat, valueHouse, valueBig):
 	print("GENERATE TOWN")
 	margin = 5
 	cote = 5
@@ -175,14 +173,10 @@ def generate_town(taille, margeBetweenBat, valueHouse, valueLittle, valueBig):
 	if(new_taille > realLargeur/2):
 		bpy.context.object.scale[0] = new_taille
 		bpy.context.object.scale[1] = new_taille
-		print(new_taille)
-		bpy.ops.transform.translate(value=(((new_taille - taille)/2 + cote)/2, ((new_taille - taille)/2 + cote)/2, 0), constraint_axis=(True, True, False))
+		#bpy.ops.transform.translate(value=(((new_taille - taille)/2 + cote)/2, ((new_taille - taille)/2 + cote)/2, 0), constraint_axis=(True, True, False))
 	
-	print((new_taille - taille)/2 + cote)
 	nbBat = nbUnitPerCote * nbUnitPerCote;
 	buildingPosTab = np.zeros((nbBat, 2), dtype='i')
-	
-	
 	
 	i=0
 	for posNumX in range(0, int(nbBat/nbUnitPerCote)):
@@ -197,10 +191,8 @@ def generate_town(taille, margeBetweenBat, valueHouse, valueLittle, valueBig):
 
 	i = 0
 	
-	
 	rangeHouse = taille - taille * valueHouse
-	rangeLittleBuilding = taille - taille * (valueHouse + valueLittle)
-	rangeBigBuilding = taille - taille * (valueHouse + valueLittle + valueBig)
+	rangeBigBuilding = taille - taille * (valueHouse + valueBig)
 	
 	for buildNum in range(0,len(buildingPosTab)):
 		#randPositionX = uniform(-50,50) 
@@ -212,26 +204,19 @@ def generate_town(taille, margeBetweenBat, valueHouse, valueLittle, valueBig):
 		randEnv = randint(0, 1)
 		
 		if positionX >= -rangeBigBuilding and positionX <= rangeBigBuilding and positionY >= -rangeBigBuilding and positionY <= rangeBigBuilding: 
-			randBatiment = randint(0, 2)
+			randBatiment = randint(0, 1)
 			if(randBatiment == 0):
 				createTower(positionX, positionY) 
 			else:
 				placeRessource(positionX, positionY, 0.1, "ModelHigh"+str(randBatiment), "Tower")
 			
-		elif (positionX >= -rangeLittleBuilding and positionX <= -rangeBigBuilding and positionY >= -rangeLittleBuilding and positionY <= rangeLittleBuilding) or (positionX >= rangeBigBuilding and positionX <= rangeLittleBuilding and positionY >= -rangeLittleBuilding and positionY <= rangeLittleBuilding) or (positionX >= -rangeLittleBuilding and positionX <= rangeLittleBuilding and positionY >= -rangeLittleBuilding and positionY <= -rangeBigBuilding) or (positionX >= -rangeLittleBuilding and positionX <= rangeLittleBuilding and positionY >= rangeBigBuilding and positionY <= rangeLittleBuilding) :
-			"""randBatiment = randint(0, 1)
-			if(randBatiment == 0):"""
-			createBigBuilding(positionX, positionY) 
-			"""else:
-				placeRessource(positionX, positionY, 0.1, "ModelBig"+str(randBatiment), "BigBuilding")"""
-				
-		elif (positionX >= -rangeHouse and positionX <= -rangeLittleBuilding and positionY >= -rangeHouse and positionY <= rangeHouse) or (positionX >= rangeLittleBuilding and positionX <= rangeHouse and positionY >= -rangeHouse and positionY <= rangeHouse) or (positionX >= -rangeHouse and positionX <= rangeHouse and positionY >= -rangeHouse and positionY <= -rangeLittleBuilding) or (positionX >= -rangeHouse and positionX <= rangeHouse and positionY >= rangeLittleBuilding and positionY <= rangeHouse):
-			randBatiment = randint(0, 3)
-			placeRessource(positionX, positionY, 0.1 , "ModelHouse"+str(randBatiment), "LittleBuilding")
-			if(randEnv == 0):
-				placeRessource(positionX + cote/2, positionY + cote/2, 0, "Lamp", "Env")
+		elif (positionX >= -rangeHouse and positionX <= -rangeBigBuilding and positionY >= -rangeHouse and positionY <= rangeHouse) or (positionX >= rangeBigBuilding and positionX <= rangeHouse and positionY >= -rangeHouse and positionY <= rangeHouse) or (positionX >= -rangeHouse and positionX <= rangeHouse and positionY >= -rangeHouse and positionY <= -rangeBigBuilding) or (positionX >= -rangeHouse and positionX <= rangeHouse and positionY >= rangeBigBuilding and positionY <= rangeHouse) :
+			randBatiment = randint(0, 2)
+			if(randBatiment == 0):
+				createBigBuilding(positionX, positionY) 
 			else:
-				placeRessource(positionX + cote/2, positionY + cote/2, 0, "Tree", "Env")
+				placeRessource(positionX, positionY, 0.1, "ModelBig"+str(randBatiment), "BigBuilding")
+				
 		elif positionX <= -rangeHouse or positionX >= rangeHouse or positionY <= -rangeHouse or positionY >= rangeHouse:
 			randBatiment = randint(0, 3)
 			placeRessource(positionX, positionY, 0.1, "ModelHouse"+str(randBatiment), "House")
